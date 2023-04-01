@@ -12,7 +12,7 @@ const category = require("./routers/CategoryRouter");
 const menu = require("./routers/MenuItemRouter");
 
 app.use("/category", category);
-app.use("/", menu);
+app.use("/menu", menu);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

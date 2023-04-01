@@ -3,9 +3,14 @@ const router = express.Router();
 
 const Category = require("../models/CategoryModel");
 
-router.get("/new", function (req, res, next) {
+router.get("/", function (req, res, next) {
   const category = new Category({
-    title: "MENU"
+    localFoods: "Yöresel Yemekler",
+    meats: "Etler",
+    pastas: "Makarnalar",
+    desserts: "Tatlılar",
+    hotDrinks: "Sıcak İçecekler",
+    coldDrinks: "Soğuk İçecekler"
   });
   category.save((err, data) => {
     if (err) console.log(err);

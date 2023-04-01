@@ -9,12 +9,10 @@ mongoose.set("strictQuery", true);
 mongoose.connect(process.env.MONGO_URI);
 
 const category = require("./routers/CategoryRouter");
+const menu = require("./routers/MenuItemRouter");
 
 app.use("/category", category);
-
-app.get("/", (req, res) => {
-  res.send("Hello Talha!");
-});
+app.use("/", menu);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

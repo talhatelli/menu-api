@@ -10,6 +10,7 @@ mongoose.connect(process.env.MONGO_URI);
 const category = require("./routers/CategoryRouter");
 const menu = require("./routers/MenuItemRouter");
 
+app.use(express.json());
 app.use("/category", category);
 app.use("/menu", menu);
 

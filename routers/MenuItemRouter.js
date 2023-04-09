@@ -16,11 +16,11 @@ router.post("/", async function (req, res, next) {
     imageUrl: "https://cdn.yemek.com/mncrop/940/625/uploads/2017/05/anali-kizli-tarifi.jpg"
   });
 });
-router.get("/", async function (req, res, next) {
-  const data = await MenuItem.find({});
+router.get("/menu-items  ", async function (req, res, next) {
+  const data = await MenuItem.find({isDeleted:false});
   res.send(data);
 });
-router.get("/malatya:id", async function (req, res, next) {
+router.get("/menu-items/:id", async function (req, res, next) {
   const data = await MenuItem.findById("642845832275aedd467d2562");
   res.send(data);
 });
@@ -71,4 +71,18 @@ router.post("/menu-items", async (req, res, next) => {
     return res.status(500).json({errors: ["Internal Server Error"]});
   }
 });
+
+router.delete("/menu-items/:id", async (req, res, next) => {
+  
+    const founded = await MenuItem.findById(req.params.id);
+
+    if (!founded) {
+      return res.status(404).json({ hatalar: ['menü öğesi _id geçersiz'] });
+    }
+
+    await MenuItem.findByIdAndUpdate(founded._id, { isDeleted: true });
+
+    return res.status(200).json({ mesaj: 'Menü öğesi başarıyla silindi' });
+});
+
 module.exports = router;

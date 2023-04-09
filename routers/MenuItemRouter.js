@@ -7,22 +7,14 @@ const PriceHistory = require("../models/priceHistoryModel");
 const MenuItemCategory = require("../models/menuItemCategoryModel");
 const {get, json} = require("express/lib/response");
 
-router.post("/", async function (req, res, next) {
-  const menu = await MenuItem.create({
-    name: "analı kızlı",
-    description:
-      "anadoluyu yurt yapan battalgazinin diyarlarında çok meşur olan bulgurun ve et harcıyla hazırlanan enfes mi enfes yöresel yemektir",
-    price: "70",
-    imageUrl: "https://cdn.yemek.com/mncrop/940/625/uploads/2017/05/anali-kizli-tarifi.jpg"
-  });
-});
+
 router.get("/menu-items  ", async function (req, res, next) {
-  const data = await MenuItem.find({isDeleted:false});
-  res.send(data);
+  const menuItems = await MenuItem.find({isDeleted:false});
+  return res.status(200).json(menuItems);
 });
 router.get("/menu-items/:id", async function (req, res, next) {
-  const data = await MenuItem.findById("642845832275aedd467d2562");
-  res.send(data);
+  const menuItem = await MenuItem.findById(req.params.id);
+  res.json(menuItem);
 });
 
 router.post("/menu-items", async (req, res, next) => {
@@ -67,22 +59,24 @@ router.post("/menu-items", async (req, res, next) => {
 
     return res.status(201).json({createdMenu});
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({errors: ["Internal Server Error"]});
+    return res.status(400).json({errors: ["Internal Server Error"]});
   }
 });
 
 router.delete("/menu-items/:id", async (req, res, next) => {
-  
+  try{
     const founded = await MenuItem.findById(req.params.id);
 
     if (!founded) {
-      return res.status(404).json({ hatalar: ['menü öğesi _id geçersiz'] });
+      return res.status(404).json({ errors: ['menu item _id is invalid']});
     }
 
     await MenuItem.findByIdAndUpdate(founded._id, { isDeleted: true });
 
-    return res.status(200).json({ mesaj: 'Menü öğesi başarıyla silindi' });
+    return res.status(200).json({ message: 'Menu item deleted successfully'});
+  }catch (error) {
+    return res.status(400).json({errors: ["Internal Server Error"]});
+  }
 });
 
 module.exports = router;

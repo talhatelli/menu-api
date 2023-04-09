@@ -13,7 +13,3 @@ const menu = require("./routers/MenuItemRouter");
 app.use(express.json());
 app.use("/category", category);
 app.use("/menu", menu);
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});

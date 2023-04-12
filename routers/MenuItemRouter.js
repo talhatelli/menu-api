@@ -12,7 +12,7 @@ router.get("/menu-items", async function (req, res) {
 });
 router.get("/menu-items/:id", async function (req, res) {
   const menuItem = await MenuItem.findById(req.params.id).populate(Category.id);
-  const categories = await MenuItemCategory.findById({menuItem: menuItem._id}).populate("");
+  const categories = await MenuItemCategory.findById({menuItem: menuItem._id}).populate("category");
   return res.status(200).json(...menuItem, categories);
 });
 
@@ -58,7 +58,7 @@ router.post("/menu-items", async (req, res) => {
 
     return res.status(201).json({createdMenu});
   } catch (err) {
-    return res.status(400).json({errors: ["Internal Server Error"]});
+    return res.status(400).json({errors: ["Bad Request"]});
   }
 });
 
@@ -74,7 +74,7 @@ router.delete("/menu-items/:id", async (req, res) => {
 
     return res.status(200).json({message: "Menu item deleted successfully"});
   } catch (error) {
-    return res.status(400).json({errors: ["Internal Server Error"]});
+    return res.status(400).json({errors: ["Bad Request"]});
   }
 });
 

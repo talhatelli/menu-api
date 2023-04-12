@@ -12,7 +12,8 @@ router.get("/menu-items", async function (req, res) {
 });
 router.get("/menu-items/:id", async function (req, res) {
   const menuItem = await MenuItem.findById(req.params.id).populate(Category.id);
-  return res.status(200).json(menuItem);
+  const categories = await MenuItemCategory.findById({menuItem: menuItem._id}).populate("");
+  return res.status(200).json(...menuItem, categories);
 });
 
 router.post("/menu-items", async (req, res) => {

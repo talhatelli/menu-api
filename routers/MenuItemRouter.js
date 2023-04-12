@@ -3,21 +3,19 @@ const router = express.Router();
 
 const MenuItem = require("../models/MenuItemModel");
 const Category = require("../models/CategoryModel");
-const PriceHistory = require("../models/priceHistoryModel");
-const MenuItemCategory = require("../models/menuItemCategoryModel");
-const {get, json} = require("express/lib/response");
+const PriceHistory = require("../models/PriceHistoryModel");
+const MenuItemCategory = require("../models/MenuItemCategoryModel");
 
-
-router.get("/menu-items  ", async function (req, res, next) {
-  const menuItems = await MenuItem.find({isDeleted:false});
+router.get("/menu-items", async function (req, res) {
+  const menuItems = await MenuItem.find({isDeleted: false});
   return res.status(200).json(menuItems);
 });
-router.get("/menu-items/:id", async function (req, res, next) {
-  const menuItem = await MenuItem.findById(req.params.id);
-  res.json(menuItem);
+router.get("/menu-items/:id", async function (req, res) {
+  const menuItem = await MenuItem.findById(req.params.id).populate(Category.id);
+  return res.status(200).json(menuItem);
 });
 
-router.post("/menu-items", async (req, res, next) => {
+router.post("/menu-items", async (req, res) => {
   try {
     const {name, description, image_url, price, categories} = req.body;
 
@@ -63,18 +61,18 @@ router.post("/menu-items", async (req, res, next) => {
   }
 });
 
-router.delete("/menu-items/:id", async (req, res, next) => {
-  try{
+router.delete("/menu-items/:id", async (req, res) => {
+  try {
     const founded = await MenuItem.findById(req.params.id);
 
     if (!founded) {
-      return res.status(404).json({ errors: ['menu item _id is invalid']});
+      return res.status(404).json({errors: ["menu item _id is invalid"]});
     }
 
-    await MenuItem.findByIdAndUpdate(founded._id, { isDeleted: true });
+    await MenuItem.findByIdAndUpdate(founded._id, {isDeleted: true});
 
-    return res.status(200).json({ message: 'Menu item deleted successfully'});
-  }catch (error) {
+    return res.status(200).json({message: "Menu item deleted successfully"});
+  } catch (error) {
     return res.status(400).json({errors: ["Internal Server Error"]});
   }
 });

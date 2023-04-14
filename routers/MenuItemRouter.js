@@ -6,17 +6,18 @@ const Category = require("../models/CategoryModel");
 const PriceHistory = require("../models/PriceHistoryModel");
 const MenuItemCategory = require("../models/MenuItemCategoryModel");
 
-router.get("/menu-items", async function (req, res) {
+router.get("/", async function (req, res) {
   const menuItems = await MenuItem.find({isDeleted: false});
   return res.status(200).json(menuItems);
 });
-router.get("/menu-items/:id", async function (req, res) {
+
+router.get("/:id", async function (req, res) {
   const menuItem = await MenuItem.findById(req.params.id).populate(Category.id);
-  const categories = await MenuItemCategory.findById({menuItem: menuItem._id}).populate("category");
-  return res.status(200).json(...menuItem, categories);
+  const categories = await MenuItemCategory.find({menuItem: menuItem.id}).populate("category");
+  return res.status(200).json(menuItem, categories);
 });
 
-router.post("/menu-items", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const {name, description, image_url, price, categories} = req.body;
 
@@ -62,7 +63,7 @@ router.post("/menu-items", async (req, res) => {
   }
 });
 
-router.delete("/menu-items/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const founded = await MenuItem.findById(req.params.id);
 

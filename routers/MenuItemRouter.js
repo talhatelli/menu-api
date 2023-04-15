@@ -79,4 +79,18 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.get("/:id/price-history", async (req, res) => {
+  try {
+    const founded = await MenuItem.findById(req.params.id);
+    if (!founded) {
+      return res.status(404).json({errors: ["menu item _id is invalid"]});
+    }
+    const priceHistory = await PriceHistory.find({founded: req.params.id});
+    return res.json(priceHistory);
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json({errors: ["Bad Request"]});
+  }
+});
+
 module.exports = router;

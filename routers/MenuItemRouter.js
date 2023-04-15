@@ -14,7 +14,7 @@ router.get("/", async function (req, res) {
 router.get("/:id", async function (req, res) {
   const menuItem = await MenuItem.findById(req.params.id).populate(Category.id);
   const categories = await MenuItemCategory.find({menuItem: menuItem.id}).populate("category");
-  return res.status(200).json(menuItem, categories);
+  return res.status(200).json({...menuItem, categories});
 });
 
 router.post("/", async (req, res) => {

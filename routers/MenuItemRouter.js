@@ -92,9 +92,9 @@ router.get("/:id/price-history", async (req, res) => {
   }
 });
 
-router.put("/:idn", async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
-    const {name, description, image_url, price, categories} = req.params;
+    const {name, description, image_url, price, categories} = req.body;
 
     if (!name || !image_url || !price || !categories) {
       return res.status(400).json({errors: ["name, image_url, price, and categories are required"]});
@@ -108,7 +108,7 @@ router.put("/:idn", async (req, res) => {
       return res.status(400).json({errors: ["description is invalid"]});
     }
 
-    if (image_url && !/^https?:\/\/.+/.test(image_url)) {
+    if (typeof image_url !== "string") {
       return res.status(400).json({errors: ["image_url is invalid"]});
     }
 
@@ -144,8 +144,8 @@ router.put("/:idn", async (req, res) => {
       });
     }
     for (const category of req.body.categories) {
-      const menuItemCategory = await MenuItemCategory.findOneAndUpdate(
-        {category: element, menuItem: updatedMenu.id},
+      await MenuItemCategory.findOneAndUpdate(
+        {category, menuItem: updatedMenu.id},
         {},
         {
           upsert: true,
@@ -154,7 +154,6 @@ router.put("/:idn", async (req, res) => {
         }
       );
     }
-
     return res.json(updatedMenu);
   } catch (err) {
     return res.status(400).json({errors: ["Bad Request"]});

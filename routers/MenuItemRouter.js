@@ -108,7 +108,7 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({errors: ["description is invalid"]});
     }
 
-    if (typeof image_url !== "string") {
+    if (typeof image_url !== "string" && !/^https?:\/\/.+/.test(image_url)) {
       return res.status(400).json({errors: ["image_url is invalid"]});
     }
 
@@ -125,22 +125,21 @@ router.put("/:id", async (req, res) => {
     if (!founded) {
       return res.status(404).json({errors: ["menu item _id is invalid"]});
     }
-
     const updatedMenu = await MenuItem.findByIdAndUpdate(
       founded._id,
       {
-        name: req.body.name,
-        description: req.body.description,
-        image_url: req.body.image_url,
-        price: req.body.price
+        name,
+        description,
+        image_url,
+        price
       },
-      {new: true}
+      {new: true, runValidators: true}
     );
 
     if (founded.price !== updatedMenu.price) {
       await PriceHistory.create({
         menuItem: founded._id,
-        price: req.body.price
+        price
       });
     }
     for (const category of req.body.categories) {

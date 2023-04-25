@@ -88,9 +88,74 @@ router.get("/:id/price-history", async (req, res) => {
     const priceHistory = await PriceHistory.find({founded: req.params.id});
     return res.json(priceHistory);
   } catch (err) {
-    console.error(err);
     return res.status(400).json({errors: ["Bad Request"]});
   }
 });
 
+router.put("/:id", async (req, res) => {
+  try {
+    const {name, description, image_url, price, categories} = req.body;
+
+    if (!name || !image_url || !price || !categories) {
+      return res.status(400).json({errors: ["name, image_url, price, and categories are required"]});
+    }
+
+    if (typeof name !== "string" || name.length < 3 || name.length > 250) {
+      return res.status(400).json({errors: ["name is invalid"]});
+    }
+
+    if (description && (typeof description !== "string" || description.length < 3 || description.length > 250)) {
+      return res.status(400).json({errors: ["description is invalid"]});
+    }
+
+    if (typeof image_url !== "string" && !/^https?:\/\/.+/.test(image_url)) {
+      return res.status(400).json({errors: ["image_url is invalid"]});
+    }
+
+    if (typeof price !== "number" || price < 0) {
+      return res.status(400).json({errors: ["price is invalid"]});
+    }
+
+    const categoryCount = await Category.countDocuments({_id: {$in: categories}});
+    if (categoryCount !== categories.length) {
+      return res.status(400).json({errors: ["Some category ids are invalid"]});
+    }
+
+    const founded = await MenuItem.findById(req.params.id);
+    if (!founded) {
+      return res.status(404).json({errors: ["menu item _id is invalid"]});
+    }
+    const updatedMenu = await MenuItem.findByIdAndUpdate(
+      founded._id,
+      {
+        name,
+        description,
+        image_url,
+        price
+      },
+      {new: true, runValidators: true}
+    );
+
+    if (founded.price !== updatedMenu.price) {
+      await PriceHistory.create({
+        menuItem: founded._id,
+        price
+      });
+    }
+    for (const element of categories) {
+      await MenuItemCategory.findOneAndUpdate(
+        {category: element, menuItem: updatedMenu.id},
+        {},
+        {
+          upsert: true,
+          setDefaultsOnInsert: true,
+          runValidators: true
+        }
+      );
+    }
+    return res.json(updatedMenu);
+  } catch (err) {
+    return res.status(400).json({errors: ["Bad Request"]});
+  }
+});
 module.exports = router;

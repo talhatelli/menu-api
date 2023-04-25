@@ -142,9 +142,9 @@ router.put("/:id", async (req, res) => {
         price
       });
     }
-    for (const category of req.body.categories) {
+    for (const element of categories) {
       await MenuItemCategory.findOneAndUpdate(
-        {category, menuItem: updatedMenu.id},
+        {category: element, menuItem: updatedMenu.id},
         {},
         {
           upsert: true,

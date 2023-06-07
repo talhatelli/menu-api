@@ -11,7 +11,7 @@ router.get("/", async function (req, res) {
 });
 
 router.post("/", async (req, res) => {
-  const name = req.body.name;
+  const {name} = req.body;
 
   const existingCategory = await Category.findOne({name});
   if (existingCategory) return res.status(400).send("Category already exists");

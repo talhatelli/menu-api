@@ -38,7 +38,7 @@ router.put("/:id", async (req, res) => {
     const newCategoryName = req.body.name;
 
     const existingCategory = await Category.findOne({id: {$ne: categoryId}, name: newCategoryName});
-    if (existingCategory) return res.status(409).json({error: "Category name already exists"});
+    if (existingCategory) return res.status(400).json({error: "Category name already exists"});
 
     const updatedCategory = await Category.findByIdAndUpdate(categoryId, {name: newCategoryName}, {new: true});
     if (!updatedCategory) return res.status(404).json({error: "Category not found"});
@@ -54,14 +54,13 @@ router.delete("/:id", async (req, res) => {
 
   try {
     const deletedCategory = await Category.findByIdAndDelete(categoryId);
-    if (!deletedCategory) {
-      return res.status(404).json({error: "Category not found"});
-    }
+    if (!deletedCategory) return res.status(404).json({error: "Category not found"});
+
     await MenuItemCategory.deleteMany({categoryId: categoryId});
 
     return res.json({message: "Category deleted successfully"});
   } catch {
-    return res.status(400).json({error: "Bad code"});
+    return res.status(400).json({error: "Bad request"});
   }
 });
 

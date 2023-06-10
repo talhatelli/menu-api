@@ -13,7 +13,7 @@ router.get("/", async function (req, res) {
 router.post("/", async (req, res) => {
   const name = req.body.name;
 
-  const existingCategory = await Category.findOne({name});
+  const existingCategory = await Category.exists({name});
   if (existingCategory) return res.status(400).send("Category already exists");
 
   const newCategory = await Category.create({name});
@@ -21,12 +21,12 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/:id/items", async function (req, res) {
-  const categoryId = req.params.id;
+  const categoryItems = req.params.id;
   try {
-    const category = await Category.findById(categoryId);
+    const category = await Category.findById(categoryItems).lean;
     const menuItems = await MenuItemCategory.find({category: category.id}).populate("menuItem");
 
-    return res.status(200).json({...category._doc, menuItems: menuItems.map(e => e.menuItem)});
+    return res.status(200).json(menuItems.map(e => e.menuItem));
   } catch {
     res.status(400).json({error: "There is no such identity."});
   }
@@ -35,8 +35,17 @@ router.get("/:id/items", async function (req, res) {
 router.put("/:id", async (req, res) => {
   try {
     const categoryId = req.params.id;
-    const newCategoryName = req.body.name;
+    const newCategoryName = req.body.name.trim();
 
+    if (!categoryId || !newCategoryName) {
+      return res.status(400).json({error: "Invalid request data"});
+    }
+    if (typeof newCategoryName !== "string" || newCategoryName.length < 3 || newCategoryName.length > 250) {
+      return res.status(400).json({errors: ["name is invalid"]});
+    }
+    if (categoryId.length !== 24) {
+      return res.status(400).json({error: "Invalid category ID"});
+    }
     const existingCategory = await Category.findOne({id: {$ne: categoryId}, name: newCategoryName});
     if (existingCategory) return res.status(400).json({error: "Category name already exists"});
 
@@ -53,8 +62,12 @@ router.delete("/:id", async (req, res) => {
   const categoryId = req.params.id;
 
   try {
+    const menuItemExists = await MenuItemCategory.exists({categoryId: categoryId});
+    if (menuItemExists) {
+      return res.status(400).json({error: "Category has associated menu items. Delete the menu items first."});
+    }
     const deletedCategory = await Category.findByIdAndDelete(categoryId);
-    if (!deletedCategory) return res.status(404).json({error: "Category not found"});
+    if (!deletedCategory) return res.status(400).json({error: "Category not found"});
 
     await MenuItemCategory.deleteMany({categoryId: categoryId});
 

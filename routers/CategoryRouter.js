@@ -34,9 +34,9 @@ router.get("/:_id/items", async function (req, res) {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:_id", async (req, res) => {
   try {
-    const categoryId = req.params.id;
+    const categoryId = req.params._id;
     const newCategoryName = req.body.name.trim();
 
     if (!categoryId || !newCategoryName) {
@@ -50,7 +50,7 @@ router.put("/:id", async (req, res) => {
     if (categoryId.length !== 24) {
       return res.status(400).json({error: "Invalid category ID"});
     }
-    const existingCategory = await Category.findOne({id: {$ne: categoryId}, name: newCategoryName});
+    const existingCategory = await Category.findOne({_id: {$ne: categoryId}, name: newCategoryName});
     if (existingCategory) return res.status(400).json({error: "Category name already exists"});
 
     const updatedCategory = await Category.findByIdAndUpdate(categoryId, {name: newCategoryName}, {new: true});
@@ -62,8 +62,8 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
-  const categoryId = req.params.id;
+router.delete("/:_id", async (req, res) => {
+  const categoryId = req.params._id;
 
   try {
     const menuItemExists = await MenuItemCategory.exists({categoryId: categoryId});

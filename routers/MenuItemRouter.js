@@ -11,10 +11,11 @@ router.get("/", async function (req, res) {
   return res.status(200).json(menuItems);
 });
 
-router.get("/:id", async function (req, res) {
-  const menuItem = await MenuItem.findById(req.params.id);
-  const categories = await MenuItemCategory.find({menuItem: menuItem.id}).populate("category");
-  return res.status(200).json({...menuItem._doc, categories: categories.map(e => e.category.name)});
+router.get("/:_id", async function (req, res) {
+  const categoryId = req.params._id;
+  const menuItem = await MenuItem.findById(categoryId).lean();
+  const categories = await MenuItemCategory.find({menuItem: menuItem._id}).populate("category");
+  return res.status(200).json({...menuItem, categories: categories.map(e => e.category)});
 });
 
 router.post("/", async (req, res) => {
@@ -43,7 +44,7 @@ router.post("/", async (req, res) => {
 
     const categoryCount = await Category.countDocuments({_id: {$in: categories}});
 
-    if (categoryCount !== categories.length || categories.length <= 0) {
+    if (!Array.isArray(categories) || categories.length === 0 || categoryCount !== categories.length) {
       return res.status(400).json({errors: ["Some category ids are invalid"]});
     }
 

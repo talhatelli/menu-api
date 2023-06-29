@@ -24,9 +24,7 @@ router.get("/:_id/items", async function (req, res) {
   const categoryId = req.params._id;
   try {
     const category = await Category.findById(categoryId).lean();
-    console.log("category ", category);
     const menuItems = await MenuItemCategory.find({category: category._id}).populate("menuItem");
-    console.log("menuItems", menuItems);
 
     return res.status(200).json(menuItems.map(e => e.menuItem));
   } catch {
@@ -37,7 +35,7 @@ router.get("/:_id/items", async function (req, res) {
 router.put("/:_id", async (req, res) => {
   try {
     const categoryId = req.params._id;
-    const newCategoryName = req.body.name.trim();
+    const newCategoryName = req.body.name;
 
     if (!categoryId || !newCategoryName) {
       return res.status(400).json({error: "Invalid request data"});
@@ -50,10 +48,11 @@ router.put("/:_id", async (req, res) => {
     if (categoryId.length !== 24) {
       return res.status(400).json({error: "Invalid category ID"});
     }
-    const existingCategory = await Category.findOne({_id: {$ne: categoryId}, name: newCategoryName});
+    const trimmedCategoryName = newCategoryName.trim();
+    const existingCategory = await Category.findOne({_id: {$ne: categoryId}, name: trimmedCategoryName});
     if (existingCategory) return res.status(400).json({error: "Category name already exists"});
 
-    const updatedCategory = await Category.findByIdAndUpdate(categoryId, {name: newCategoryName}, {new: true});
+    const updatedCategory = await Category.findByIdAndUpdate(categoryId, {name: trimmedCategoryName}, {new: true});
     if (!updatedCategory) return res.status(400).json({error: "Category not found"});
 
     return res.json(updatedCategory);

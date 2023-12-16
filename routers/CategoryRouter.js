@@ -33,17 +33,35 @@ router.post("/", async (req, res) => {
   return res.status(201).json(newCategory);
 });
 
+// router.get("/:_id/items", async function (req, res) {
+//   const categoryId = req.params._id;
+//   try {
+//     const category = await Category.findById(categoryId).lean();
+//     const menuItems = await MenuItemCategory.find({ category: category._id }).populate("menuItem");
+
+//     return res.status(200).json(menuItems.map(e => e.menuItem));
+//   } catch {
+//     res.status(400).json({ error: "There is no such identity." });
+//   }
+// });
 router.get("/:_id/items", async function (req, res) {
   const categoryId = req.params._id;
   try {
     const category = await Category.findById(categoryId).lean();
-    const menuItems = await MenuItemCategory.find({ category: category._id }).populate("menuItem");
+    const menuItems = await MenuItemCategory.find({ category: category._id }).populate("menuItem")
+      .populate({
+        path: "menuItem",
+        match: { isDeleted: false },
+      })
+      .exec();
+    const filteredMenuItems = menuItems.map((e) => e.menuItem).filter(Boolean);
 
-    return res.status(200).json(menuItems.map(e => e.menuItem));
+    return res.status(200).json(filteredMenuItems);
   } catch {
     res.status(400).json({ error: "There is no such identity." });
   }
 });
+
 
 router.put("/:_id", async (req, res) => {
   try {
@@ -81,7 +99,8 @@ router.delete("/:_id", async (req, res) => {
 
   try {
     const menuItemExists = await MenuItemCategory.exists({ categoryId: categoryId });
-    if (menuItemExists) {
+    console.log('%cCategoryRouter.js line:102 menuItemExists', 'color: #007acc;', menuItemExists);
+    if (!menuItemExists) {
       return res.status(400).json({ error: "Category has associated menu items. Delete the menu items first." });
     }
     const deletedCategory = await Category.findByIdAndDelete(categoryId);

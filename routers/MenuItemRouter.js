@@ -87,7 +87,7 @@ router.get("/:_id/price-history", async (req, res) => {
     if (!founded) {
       return res.status(404).json({ errors: ["menu item _id is invalid"] });
     }
-    const priceHistory = await PriceHistory.find({ founded: req.params._id });
+    const priceHistory = await PriceHistory.find({ menuItem: req.params._id });
     return res.json(priceHistory);
   } catch (err) {
     return res.status(400).json({ errors: ["Bad Request"] });

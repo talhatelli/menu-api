@@ -35,17 +35,6 @@ router.post("/",RequireLogin, async (req, res) => {
   return res.status(201).json(newCategory);
 });
 
-// router.get("/:_id/items", async function (req, res) {
-//   const categoryId = req.params._id;
-//   try {
-//     const category = await Category.findById(categoryId).lean();
-//     const menuItems = await MenuItemCategory.find({ category: category._id }).populate("menuItem");
-
-//     return res.status(200).json(menuItems.map(e => e.menuItem));
-//   } catch {
-//     res.status(400).json({ error: "There is no such identity." });
-//   }
-// });
 router.get("/:_id/items", async function (req, res) {
   const categoryId = req.params._id;
   try {

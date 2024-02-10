@@ -4,9 +4,11 @@ const router = express.Router();
 const Category = require("../models/CategoryModel");
 const MenuItem = require("../models/MenuItemModel");
 const MenuItemCategory = require("../models/MenuItemCategoryModel");
+const RequireLogin = require("../middleware/RequireLogin");
 
-router.get("/", async function (req, res) {
-  const category = await Category.find();
+router.get("/",RequireLogin, async function (req, res) {
+  const userId = req.user._id;
+  const category = await Category.find({ user: userId });
   return res.status(200).json(category);
 });
 router.get("/:_id", async function (req, res) {
@@ -19,31 +21,20 @@ router.get("/:_id", async function (req, res) {
 
     return res.status(200).json(category);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "There is no such identity." });
   }
 });
-router.post("/", async (req, res) => {
+router.post("/",RequireLogin, async (req, res) => {
   const { name } = req.body;
+  const userId = req.user._id;
 
   const existingCategory = await Category.exists({ name });
   if (existingCategory) return res.status(400).send("Category already exists");
 
-  const newCategory = await Category.create({ name });
+  const newCategory = await Category.create({ name, user:userId });
   return res.status(201).json(newCategory);
 });
 
-// router.get("/:_id/items", async function (req, res) {
-//   const categoryId = req.params._id;
-//   try {
-//     const category = await Category.findById(categoryId).lean();
-//     const menuItems = await MenuItemCategory.find({ category: category._id }).populate("menuItem");
-
-//     return res.status(200).json(menuItems.map(e => e.menuItem));
-//   } catch {
-//     res.status(400).json({ error: "There is no such identity." });
-//   }
-// });
 router.get("/:_id/items", async function (req, res) {
   const categoryId = req.params._id;
   try {
@@ -99,7 +90,6 @@ router.delete("/:_id", async (req, res) => {
 
   try {
     const menuItemExists = await MenuItemCategory.exists({ categoryId: categoryId });
-    console.log('%cCategoryRouter.js line:102 menuItemExists', 'color: #007acc;', menuItemExists);
     if (!menuItemExists) {
       return res.status(400).json({ error: "Category has associated menu items. Delete the menu items first." });
     }

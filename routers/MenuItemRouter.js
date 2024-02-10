@@ -5,10 +5,16 @@ const MenuItem = require("../models/MenuItemModel");
 const Category = require("../models/CategoryModel");
 const PriceHistory = require("../models/PriceHistoryModel");
 const MenuItemCategory = require("../models/MenuItemCategoryModel");
+const RequireLogin = require("../middleware/RequireLogin");
 
-router.get("/", async function (req, res) {
-  const menuItems = await MenuItem.find({ isDeleted: false });
-  return res.status(200).json(menuItems);
+router.get("/", RequireLogin, async function (req, res) {
+  try {
+    const userId = req.user._id;
+    const userMenuItems = await MenuItem.find({ user: userId, isDeleted: false });
+    return res.status(200).json(userMenuItems);
+  } catch (error) {
+    return res.status(500).json({ error: "Sunucu hatası" });
+  }
 });
 
 router.get("/:_id", async function (req, res) {
@@ -18,12 +24,14 @@ router.get("/:_id", async function (req, res) {
   return res.status(200).json({ ...menuItem, categories: categories.map(e => e.category) });
 });
 
-router.post("/", async (req, res) => {
+router.post("/", RequireLogin, async (req, res) => {
   try {
+    const userId = req.user._id;
+    
     const { name, description, imageUrl, price, categories } = req.body;
 
-    if (!name || !imageUrl || !price || !categories) {
-      return res.status(400).json({ errors: ["name, imageUrl, price, and categories are required"] });
+    if (!userId || !name || !imageUrl || !price || !categories) {
+      return res.status(400).json({ errors: ["user id, name, imageUrl, price, and categories are required"] });
     }
 
     if (typeof name !== "string" || name.length < 3 || name.length > 250) {
@@ -48,7 +56,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ errors: ["Some category ids are invalid"] });
     }
 
-    const createdMenu = await MenuItem.create({ name, description, imageUrl, price });
+    const createdMenu = await MenuItem.create({ name, description, imageUrl, price,user:userId });
     await PriceHistory.create({ menuItem: createdMenu._id, price: createdMenu.price });
 
     for (const category of categories) {

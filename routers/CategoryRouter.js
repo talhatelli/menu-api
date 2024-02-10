@@ -21,7 +21,6 @@ router.get("/:_id", async function (req, res) {
 
     return res.status(200).json(category);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "There is no such identity." });
   }
 });
@@ -102,7 +101,6 @@ router.delete("/:_id", async (req, res) => {
 
   try {
     const menuItemExists = await MenuItemCategory.exists({ categoryId: categoryId });
-    console.log('%cCategoryRouter.js line:102 menuItemExists', 'color: #007acc;', menuItemExists);
     if (!menuItemExists) {
       return res.status(400).json({ error: "Category has associated menu items. Delete the menu items first." });
     }

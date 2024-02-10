@@ -5,21 +5,15 @@ const jwt = require("jsonwebtoken")
 const RequireLogin = require("../middleware/RequireLogin")
 const AuthModel = require("../models/AuthModel");
 
-router.get('/protected', RequireLogin, (req, res) => {
-     res.send("hello user")
-})
-
 router.post('/signup', (req, res) => {
    const {email, password} = req.body
-   // eger bu degerler girilmemise error gonder
    if( !email || !password){
-    return res.status(422).json({error: "lütfen tüm alanları doldurun"})
+    return res.status(422).json({error: "Please fill in all fields"})
    }
    AuthModel.findOne({email: email})
    .then((savedUser) => {
         if(savedUser){
-            // eğer bu erroru alırsa kod devam etmesin diye return koyuldu
-            return res.status(422).json({error: "email zaten kayıtlı"})
+            return res.status(422).json({error: "Email is already registered"})
         }
         bcrypt.hash(password, 12)
         .then(hashedpassword => {
@@ -29,7 +23,7 @@ router.post('/signup', (req, res) => {
             })
             user.save()
             .then(user => {
-                res.json({message: "kayıt oluşturuldu"})
+                res.json({message: "Record created"})
             })
             .catch(error => {
                 console.log(error);
@@ -44,23 +38,22 @@ router.post('/signup', (req, res) => {
 router.post('/login', (req, res) => {
     const {email, password} = req.body
     if(!email || !password){
-        return res.status(422).json({error: "lütfen email ya da parola girin"})
+        return res.status(422).json({error: "Please enter email or password"})
     }
     AuthModel.findOne({email: email})
     .then(savedUser => {
         if(!savedUser){
-            return res.status(422).json({error: "geçersiz email ya da parola"})
+            return res.status(422).json({error: "Invalid email or password"})
         }
         bcrypt.compare(password, savedUser.password)
         .then(doMatch => {
             if(doMatch){
-                // res.json({message: "başarıyla giriş yapıldı"})
                 const token = jwt.sign({ _id: savedUser._id}, process.env.JWT_SECRET)
                 const {_id, email, password, followers, following} = savedUser
                 res.json({token: token, user: {_id, email, password, followers, following}})
             } 
             else{
-                return res.status(422).json({error: "geçersiz email ya da parola"})
+                return res.status(422).json({error: "Invalid email or password"})
             }
         })
         .catch(err => { console.log(err) })

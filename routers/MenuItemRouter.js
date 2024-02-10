@@ -7,11 +7,6 @@ const PriceHistory = require("../models/PriceHistoryModel");
 const MenuItemCategory = require("../models/MenuItemCategoryModel");
 const RequireLogin = require("../middleware/RequireLogin");
 
-// router.get("/", async function (req, res) {
-//   const menuItems = await MenuItem.find({ isDeleted: false });
-//   return res.status(200).json(menuItems);
-// });
-
 router.get("/", RequireLogin, async function (req, res) {
   try {
     const userId = req.user._id;

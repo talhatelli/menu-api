@@ -4,9 +4,11 @@ const router = express.Router();
 const Category = require("../models/CategoryModel");
 const MenuItem = require("../models/MenuItemModel");
 const MenuItemCategory = require("../models/MenuItemCategoryModel");
+const RequireLogin = require("../middleware/RequireLogin");
 
-router.get("/", async function (req, res) {
-  const category = await Category.find();
+router.get("/",RequireLogin, async function (req, res) {
+  const userId = req.user._id;
+  const category = await Category.find({ user: userId });
   return res.status(200).json(category);
 });
 router.get("/:_id", async function (req, res) {
@@ -23,13 +25,14 @@ router.get("/:_id", async function (req, res) {
     res.status(500).json({ error: "There is no such identity." });
   }
 });
-router.post("/", async (req, res) => {
+router.post("/",RequireLogin, async (req, res) => {
   const { name } = req.body;
+  const userId = req.user._id;
 
   const existingCategory = await Category.exists({ name });
   if (existingCategory) return res.status(400).send("Category already exists");
 
-  const newCategory = await Category.create({ name });
+  const newCategory = await Category.create({ name, user:userId });
   return res.status(201).json(newCategory);
 });
 

@@ -48,7 +48,8 @@ router.post('/login', (req, res) => {
         bcrypt.compare(password, savedUser.password)
         .then(doMatch => {
             if(doMatch){
-                const token = jwt.sign({ _id: savedUser._id}, process.env.JWT_SECRET, { expiresIn: '1h' })
+                const token = jwt.sign({ _id: savedUser._id}, process.env.JWT_SECRET, { expiresIn: '1h' });
+                
                 const {_id, email, password, followers, following} = savedUser
                 res.json({token: token, user: {_id, email, password, followers, following}})
             } 

@@ -19,7 +19,7 @@ router.get("/", RequireLogin, async function (req, res) {
 });
 router.get("/app", async function (req, res) {
   try {
-    const userMenuItems = await MenuItem.find({isDeleted: false});
+    const userMenuItems = await MenuItem.find({isDeleted: false, isActive: true});
     return res.status(200).json(userMenuItems);
   } catch (error) {
     return res.status(500).json({error: "Sunucu hatası"});
@@ -30,6 +30,18 @@ router.get("/:_id", async function (req, res) {
   const menuItem = await MenuItem.findById(categoryId).lean();
   const categories = await MenuItemCategory.find({menuItem: menuItem._id}).populate("category");
   return res.status(200).json({...menuItem, categories: categories.map(e => e.category)});
+});
+router.put("/status/:_id", RequireLogin, async function (req, res) {
+  try {
+    const menuItemId = req.params._id;
+    const isActive = req.body.isActive;
+
+    await MenuItem.findByIdAndUpdate(menuItemId, {isActive: isActive});
+
+    return res.status(200).json({message: "Menu item has been updated successfully."});
+  } catch (error) {
+    return res.status(500).json({error: "Bad Request"});
+  }
 });
 
 router.post("/", RequireLogin, async (req, res) => {

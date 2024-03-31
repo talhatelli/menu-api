@@ -10,7 +10,6 @@ const RequireLogin = require("../middleware/RequireLogin");
 router.get("/", RequireLogin, async function (req, res) {
   try {
     const userId = req.user._id;
-    console.log("%crouters/MenuItemRouter.js:13 userId", "color: #26bfa5;", userId);
     const userMenuItems = await MenuItem.find({user: userId, isDeleted: false});
     return res.status(200).json(userMenuItems);
   } catch (error) {

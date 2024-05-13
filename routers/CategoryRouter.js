@@ -11,6 +11,29 @@ router.get("/", RequireLogin, async function (req, res) {
   const category = await Category.find({user: userId});
   return res.status(200).json(category);
 });
+router.get("/all-categories-with-items", async function (req, res) {
+  try {
+    const categories = await Category.find().lean();
+    const categoriesWithItems = await Promise.all(
+      categories.map(async category => {
+        const items = await MenuItemCategory.find({category: category._id})
+          .populate("menuItem")
+          .populate({
+            path: "menuItem",
+            match: {isDeleted: false, isActive: true}
+          })
+          .exec();
+        const filteredItems = items.map(e => e.menuItem).filter(Boolean);
+        return {...category, items: filteredItems};
+      })
+    );
+
+    return res.status(200).json(categoriesWithItems);
+  } catch (error) {
+    res.status(500).json({error: "There is no such identity."});
+  }
+});
+
 router.get("/app", async function (req, res) {
   const category = await Category.find();
   return res.status(200).json(category);
@@ -93,17 +116,15 @@ router.delete("/:_id", async (req, res) => {
   const categoryId = req.params._id;
 
   try {
-    const menuItemExists = await MenuItemCategory.exists({categoryId: categoryId});
-    if (!menuItemExists) {
-      return res.status(400).json({error: "Category has associated menu items. Delete the menu items first."});
-    }
-    const deletedCategory = await Category.findByIdAndDelete(categoryId);
-    if (!deletedCategory) return res.status(404).json({error: "Category not found"});
+    await MenuItemCategory.updateMany({category: categoryId}, {isDeleted: true});
 
-    await MenuItemCategory.deleteMany({categoryId: categoryId});
+    const deletedCategory = await Category.findByIdAndDelete(categoryId);
+    if (!deletedCategory) {
+      return res.status(404).json({error: "Category not found"});
+    }
 
     return res.json({message: "Category deleted successfully"});
-  } catch {
+  } catch (error) {
     return res.status(400).json({error: "Bad request"});
   }
 });

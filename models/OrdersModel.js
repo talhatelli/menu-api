@@ -27,6 +27,11 @@ const OrdersSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "pending"
+    },
+    table: {
+      type: String,
+      required: true,
+      trim: true
     }
   },
   {timestamps: true}

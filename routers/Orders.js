@@ -17,7 +17,7 @@ router.post("/", async (req, res) => {
     const ordersData = req.body;
 
     if (!Array.isArray(ordersData)) {
-      return res.status(400).json({message: "Gönderilen veri bir dizi olmalıdır."});
+      return res.status(400).json({message: "The data sent must be a string."});
     }
 
     const savedOrders = await Promise.all(
@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
         const {name, description, price, imageUrl, note, count, table} = orderData;
 
         if (!name || !price) {
-          throw new Error("Ad ve fiyat gereklidir.");
+          throw new Error("Name and price are required.");
         }
 
         const order = new Orders({
@@ -45,24 +45,23 @@ router.post("/", async (req, res) => {
     res.status(201).json(savedOrders);
   } catch (err) {
     console.error(err);
-    res.status(500).json({message: "Sipariş oluşturulurken bir hata oluştu."});
+    res.status(500).json({message: "An error occurred while creating the order."});
   }
 });
-const mongoose = require("mongoose"); // Mongoose'u ekliyoruz
+const mongoose = require("mongoose");
 
 router.put("/:id", async (req, res) => {
   const orderId = req.params.id;
 
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
-    return res.status(400).json({error: "Geçersiz sipariş ID"});
+    return res.status(400).json({error: "Invalid Order ID"});
   }
 
   const order = await Orders.findById(orderId);
   if (!order) {
-    return res.status(404).json({error: "Sipariş bulunamadı"});
+    return res.status(404).json({error: "Order not found"});
   }
 
-  console.log("%crouters/Orders.js:57 order", "color: #26bfa5;", order);
   if (order.status === "pending") {
     order.status = "getting_ready";
     await order.save();
